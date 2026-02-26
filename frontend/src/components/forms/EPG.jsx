@@ -29,6 +29,7 @@ const EPG = ({ epg = null, isOpen, onClose }) => {
       source_type: 'xmltv',
       url: '',
       api_key: '',
+      username: '',
       is_active: true,
       refresh_interval: 24,
       cron_expression: '',
@@ -82,6 +83,7 @@ const EPG = ({ epg = null, isOpen, onClose }) => {
         source_type: epg.source_type,
         url: epg.url,
         api_key: epg.api_key,
+        username: epg.username || '',
         is_active: epg.is_active,
         refresh_interval: epg.refresh_interval,
         cron_expression: epg.cron_expression || '',
@@ -171,24 +173,37 @@ const EPG = ({ epg = null, isOpen, onClose }) => {
 
             {/* Right Column */}
             <Stack gap="md" style={{ flex: 1 }}>
-              <TextInput
-                id="url"
-                name="url"
-                label="URL"
-                description="Direct URL to the XMLTV file or API endpoint"
-                {...form.getInputProps('url')}
-                key={form.key('url')}
-              />
+              {sourceType !== 'schedules_direct' && (
+                <TextInput
+                  id="url"
+                  name="url"
+                  label="URL"
+                  description="Direct URL to the XMLTV file or API endpoint"
+                  {...form.getInputProps('url')}
+                  key={form.key('url')}
+                />
+              )}
 
               {sourceType === 'schedules_direct' && (
-                <TextInput
-                  id="api_key"
-                  name="api_key"
-                  label="API Key"
-                  description="API key for services that require authentication"
-                  {...form.getInputProps('api_key')}
-                  key={form.key('api_key')}
-                />
+                <>
+                  <TextInput
+                    id="username"
+                    name="username"
+                    label="Username"
+                    description="Schedules Direct account username"
+                    {...form.getInputProps('username')}
+                    key={form.key('username')}
+                  />
+                  <TextInput
+                    id="api_key"
+                    name="api_key"
+                    label="Password"
+                    type="password"
+                    description="Schedules Direct account password"
+                    {...form.getInputProps('api_key')}
+                    key={form.key('api_key')}
+                  />
+                </>
               )}
 
               <NumberInput
