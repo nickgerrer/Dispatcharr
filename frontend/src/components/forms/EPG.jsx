@@ -184,7 +184,7 @@ const EPG = ({ epg = null, isOpen, onClose }) => {
 
   return (
     <>
-      <Modal opened={isOpen} onClose={onClose} title="EPG Source" size={700}>
+      <Modal opened={isOpen} onClose={onClose} title="EPG Source" size={700} scrollAreaComponent={Modal.NativeScrollArea}>
         <form onSubmit={form.onSubmit(onSubmit)}>
           <Group justify="space-between" align="top">
             {/* Left Column */}
