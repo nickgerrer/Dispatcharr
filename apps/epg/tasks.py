@@ -1814,7 +1814,7 @@ def fetch_schedules_direct(source):
         lineups = status_data.get("lineups", [])
         if not lineups:
             source.status = "error"
-            source.last_message = "No lineups found on your Schedules Direct account. Add a lineup at schedulesdirect.org."
+            source.last_message = "No lineups configured. Edit this EPG source and use the Manage Lineups section to search and add a lineup for your area."
             source.save(update_fields=["status", "last_message"])
             send_epg_update(source.id, "error", 0, status="error",
                             error="No lineups configured")
