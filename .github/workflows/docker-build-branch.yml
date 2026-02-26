@@ -1,0 +1,49 @@
+name: Build and Push Branch Docker Image
+
+on:
+  push:
+    branches:
+      - bugfix/uwsgi-read-timeout
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Determine image tag
+        id: tag
+        env:
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          BRANCH_TAG=$(echo "$REF_NAME" | sed 's|/|-|g')
+          echo "branch_tag=${BRANCH_TAG}" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: docker/Dockerfile
+          push: true
+          platforms: linux/amd64
+          build-args: |
+            BRANCH=${{ github.ref_name }}
+            REPO_URL=https://github.com/${{ github.repository }}
+          tags: |
+            ghcr.io/nickgerrer/dispatcharr:${{ steps.tag.outputs.branch_tag }}
+            ghcr.io/nickgerrer/dispatcharr:latest
