@@ -1688,7 +1688,9 @@ def generate_epg(request, profile_name=None, user=None):
                             # Add categories if available
                             if "categories" in custom_data and custom_data["categories"]:
                                 for category in custom_data["categories"]:
-                                    program_xml.append(f"    <category>{html.escape(category)}</category>")
+                                    if isinstance(category, dict):
+                                        category = category.get("category", category.get("value", str(category)))
+                                    program_xml.append(f"    <category>{html.escape(str(category))}</category>")
 
                             # Add keywords if available
                             if "keywords" in custom_data and custom_data["keywords"]:
@@ -1771,6 +1773,13 @@ def generate_epg(request, profile_name=None, user=None):
                                 program_xml.append(f'    <rating system="{html.escape(rating_system)}">')
                                 program_xml.append(f'      <value>{html.escape(custom_data["rating"])}</value>')
                                 program_xml.append(f"    </rating>")
+                            elif "ratings" in custom_data and isinstance(custom_data["ratings"], list):
+                                for rating in custom_data["ratings"]:
+                                    if isinstance(rating, dict) and "value" in rating:
+                                        rating_system = rating.get("system", "TV Parental Guidelines")
+                                        program_xml.append(f'    <rating system="{html.escape(rating_system)}">')
+                                        program_xml.append(f'      <value>{html.escape(rating["value"])}</value>')
+                                        program_xml.append(f"    </rating>")
 
                             # Add star ratings
                             if "star_ratings" in custom_data and isinstance(custom_data["star_ratings"], list):
