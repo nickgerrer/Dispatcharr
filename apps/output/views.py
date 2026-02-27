@@ -1975,12 +1975,10 @@ def xc_get_info(request, full=False):
     if user is None:
         return JsonResponse({'error': 'Unauthorized'}, status=401)
 
-    raw_host = request.get_host()
-    if ":" in raw_host:
-        hostname, port = raw_host.split(":", 1)
-    else:
-        hostname = raw_host
-        port = "443" if request.is_secure() else "80"
+    hostname, port = get_host_and_port(request)
+    scheme = request.META.get("HTTP_X_FORWARDED_PROTO", request.scheme)
+    if port is None:
+        port = "443" if scheme == "https" else "80"
 
     info = {
         "user_info": {
@@ -1997,7 +1995,7 @@ def xc_get_info(request, full=False):
         },
         "server_info": {
             "url": hostname,
-            "server_protocol": request.scheme,
+            "server_protocol": scheme,
             "port": port,
             "timezone": get_localzone().key,
             "timestamp_now": int(time.time()),
