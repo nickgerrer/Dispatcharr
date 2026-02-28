@@ -3,6 +3,10 @@ ARG REPO_OWNER=dispatcharr
 ARG REPO_NAME=dispatcharr
 ARG BASE_TAG=base
 
+# --- Rust streaming proxy (built from separate repo) ---
+ARG STREAM_PROXY_TAG=latest
+FROM ghcr.io/${REPO_OWNER}/stream-proxy:${STREAM_PROXY_TAG} AS rust-proxy
+
 # --- Build frontend ---
 
 FROM node:24 AS frontend-builder
@@ -40,6 +44,8 @@ RUN for f in /app/docker/entrypoint*.sh; do \
 RUN rm -rf /app/frontend
 # Copy built frontend assets
 COPY --from=frontend-builder /app/frontend/dist /app/frontend/dist
+# Copy Rust streaming proxy binary
+COPY --from=rust-proxy /usr/local/bin/dispatcharr-proxy /usr/local/bin/dispatcharr-proxy
 
 # Add timestamp argument
 ARG TIMESTAMP

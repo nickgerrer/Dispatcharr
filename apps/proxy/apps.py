@@ -15,3 +15,8 @@ class ProxyConfig(AppConfig):
             # Initialize proxy servers
             self.hls_proxy = HLSProxyServer()
             self.ts_proxy = TSProxyServer()
+
+            # Sync channel configs to Rust proxy after startup
+            import threading
+            from .rust_proxy_client import sync_all_channels
+            threading.Timer(5.0, sync_all_channels).start()

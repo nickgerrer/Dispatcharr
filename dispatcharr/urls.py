@@ -5,7 +5,7 @@ from django.conf.urls.static import static
 from django.views.generic import TemplateView, RedirectView
 from .routing import websocket_urlpatterns
 from apps.output.views import xc_player_api, xc_panel_api, xc_get, xc_xmltv
-from apps.proxy.ts_proxy.views import stream_xc
+from apps.proxy.ts_proxy.views import stream_xc, stream_auth
 from apps.output.views import xc_movie_stream, xc_series_stream
 
 urlpatterns = [
@@ -26,6 +26,8 @@ urlpatterns = [
     # Add proxy apps - Move these before the catch-all
     path("proxy/", include(("apps.proxy.urls", "proxy"), namespace="proxy")),
     path("proxy", RedirectView.as_view(url="/proxy/", permanent=True)),
+    # Rust proxy auth endpoint (used by Nginx auth_request)
+    path("api/stream-auth", stream_auth, name="stream_auth"),
     # xc
     re_path("player_api.php", xc_player_api, name="xc_player_api"),
     re_path("panel_api.php", xc_panel_api, name="xc_panel_api"),

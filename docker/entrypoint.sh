@@ -206,6 +206,15 @@ if [[ "$DISPATCHARR_ENV" = "dev" ]]; then
     echo "✅ vite started with PID $npm_pid"
     pids+=("$npm_pid")
 else
+    # Start Rust streaming proxy
+    if [ -x /usr/local/bin/dispatcharr-proxy ]; then
+        echo "🚀 Starting Rust streaming proxy..."
+        RUST_LOG=info /usr/local/bin/dispatcharr-proxy &
+        rust_proxy_pid=$!
+        echo "✅ Rust streaming proxy started with PID $rust_proxy_pid"
+        pids+=("$rust_proxy_pid")
+    fi
+
     echo "🚀 Starting nginx..."
     nginx
     nginx_pid=$(pgrep nginx | sort  | head -n1)

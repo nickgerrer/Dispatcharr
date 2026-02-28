@@ -44,6 +44,71 @@ from dispatcharr.utils import network_access_allowed
 logger = get_logger()
 
 
+def stream_auth(request):
+    """
+    Nginx auth_request endpoint. Validates XC credentials from the
+    original URI and returns X-Channel-ID header on success.
+    """
+    from django.views.decorators.http import require_GET
+
+    original_uri = request.META.get("HTTP_X_ORIGINAL_URI", "")
+
+    # Parse /live/<username>/<password>/<channel_id>
+    parts = original_uri.strip("/").split("/")
+    if len(parts) < 4 or parts[0] != "live":
+        return HttpResponse(status=403)
+
+    username, password, channel_id_str = parts[1], parts[2], parts[3]
+
+    # Strip file extension from channel_id (e.g. "123.ts" -> "123")
+    channel_id_str = pathlib.Path(channel_id_str).stem
+
+    # Validate credentials (same logic as stream_xc)
+    try:
+        user = User.objects.get(username=username)
+    except User.DoesNotExist:
+        return HttpResponse(status=403)
+
+    custom_properties = user.custom_properties or {}
+    if "xc_password" not in custom_properties:
+        return HttpResponse(status=403)
+    if custom_properties["xc_password"] != password:
+        return HttpResponse(status=403)
+
+    # Resolve channel with profile filtering
+    try:
+        channel_id_int = int(channel_id_str)
+    except ValueError:
+        return HttpResponse(status=404)
+
+    if user.user_level < 10:
+        user_profile_count = user.channel_profiles.count()
+        if user_profile_count == 0:
+            channel = Channel.objects.filter(
+                id=channel_id_int, user_level__lte=user.user_level
+            ).first()
+        else:
+            channel = (
+                Channel.objects.filter(
+                    id=channel_id_int,
+                    channelprofilemembership__enabled=True,
+                    user_level__lte=user.user_level,
+                    channelprofilemembership__channel_profile__in=user.channel_profiles.all(),
+                )
+                .distinct()
+                .first()
+            )
+    else:
+        channel = Channel.objects.filter(id=channel_id_int).first()
+
+    if not channel:
+        return HttpResponse(status=404)
+
+    response = HttpResponse(status=200)
+    response["X-Channel-ID"] = str(channel.uuid)
+    return response
+
+
 @api_view(["GET"])
 def stream_ts(request, channel_id):
     if not network_access_allowed(request, "STREAMS"):
