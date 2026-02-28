@@ -92,23 +92,17 @@ def calculate_tuner_count(minimum=1, unlimited_default=10):
                 or 0
             )
 
-        # 3. Add custom stream count to tuner count
-        custom_stream_count = Stream.objects.filter(is_custom=True).count()
-        logger.debug(f"Found {custom_stream_count} custom streams")
-
-        # 4. Calculate final tuner count
+        # 3. Calculate final tuner count (based on profile max_streams only)
         if has_unlimited:
-            # If there are unlimited profiles, start with unlimited_default plus custom streams
-            tuner_count = unlimited_default + custom_stream_count
+            tuner_count = unlimited_default
         else:
-            # Otherwise use the limited profile sum plus custom streams
-            tuner_count = limited_tuners + custom_stream_count
+            tuner_count = limited_tuners
 
         # 5. Ensure minimum number
         tuner_count = max(minimum, tuner_count)
 
         logger.debug(
-            f"Calculated tuner count: {tuner_count} (limited profiles: {limited_tuners}, custom streams: {custom_stream_count}, unlimited: {has_unlimited})"
+            f"Calculated tuner count: {tuner_count} (limited profiles: {limited_tuners}, unlimited: {has_unlimited})"
         )
 
         return tuner_count
