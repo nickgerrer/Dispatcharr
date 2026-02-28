@@ -4,8 +4,11 @@ ARG REPO_NAME=dispatcharr
 ARG BASE_TAG=base
 
 # --- Rust streaming proxy (built from separate repo) ---
+# STREAM_PROXY_OWNER defaults to REPO_OWNER but can be overridden for forks
+# where the base image (upstream) and stream-proxy (fork) live under different orgs
+ARG STREAM_PROXY_OWNER=${REPO_OWNER}
 ARG STREAM_PROXY_TAG=latest
-FROM ghcr.io/${REPO_OWNER}/stream-proxy:${STREAM_PROXY_TAG} AS rust-proxy
+FROM ghcr.io/${STREAM_PROXY_OWNER}/stream-proxy:${STREAM_PROXY_TAG} AS rust-proxy
 
 # --- Build frontend ---
 
