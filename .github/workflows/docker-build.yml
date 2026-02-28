@@ -49,6 +49,7 @@ jobs:
           push: true
           platforms: linux/amd64,linux/arm64
           build-args: |
+            REPO_OWNER=${{ github.repository_owner }}
             BRANCH=${{ env.BRANCH }}
             REPO_URL=https://github.com/${{ github.repository }}
           tags: |
